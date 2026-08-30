@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Settings</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-main: #0f172a;
+            --primary: #2563eb;
+            --error: #dc2626;
+            --border-color: #cbd5e1;
+            --focus-ring: rgba(37, 99, 235, 0.3);
+            --font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            margin: 0;
+        }
+
+        main {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.checkbox-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group.checkbox-group label {
+            margin-bottom: 0;
+        }
+
+        input[type="text"],
+        input[type="email"] {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="checkbox"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        input[aria-invalid="true"] {
+            border-color: var(--error);
+        }
+
+        input[aria-invalid="true"]:focus {
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3);
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <h1>Settings</h1>
+        <form id="settings-form" novalidate>
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" aria-describedby="name-error" aria-invalid="false">
+                <div id="name-error" class="error-message" aria-live="polite">Name must be more than 2 characters long.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" aria-describedby="email-error" aria-invalid="false">
+                <div id="email-error" class="error-message" aria-live="polite">Please enter a valid email address.</div>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="subscribe" name="subscribe" checked>
+                <label for="subscribe">Subscribe to newsletter</label>
+            </div>
+
+            <button type="submit">Save Changes</button>
+        </form>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('settings-form');
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            
+            const nameError = document.getElementById('name-error');
+            const emailError = document.getElementById('email-error');
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            function validateName() {
+                const trimmedValue = nameInput.value.trim();
+                if (trimmedValue.length <= 2) {
+                    nameInput.setAttribute('aria-invalid', 'true');
+                    nameError.classList.add('visible');
+                    return false;
+                } else {
+                    nameInput.setAttribute('aria-invalid', 'false');
+                    nameError.classList.remove('visible');
+                    return true;
+                }
+            }
+
+            function validateEmail() {
+                if (!emailRegex.test(emailInput.value)) {
+                    emailInput.setAttribute('aria-invalid', 'true');
+                    emailError.classList.add('visible');
+                    return false;
+                } else {
+                    emailInput.setAttribute('aria-invalid', 'false');
+                    emailError.classList.remove('visible');
+                    return true;
+                }
+            }
+
+            // Real-time validation
+            nameInput.addEventListener('input', validateName);
+            emailInput.addEventListener('input', validateEmail);
+            
+            nameInput.addEventListener('blur', validateName);
+            emailInput.addEventListener('blur', validateEmail);
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault(); // Prevent default submission
+
+                const isNameValid = validateName();
+                const isEmailValid = validateEmail();
+
+                if (isNameValid && isEmailValid) {
+                    // Gather payload
+                    const formData = new FormData(form);
+                    const payload = {
+                        name: formData.get('name').trim(),
+                        email: formData.get('email'),
+                        subscribe: formData.get('subscribe') !== null // checkbox handling
+                    };
+
+                    console.log('JSON Payload:', JSON.stringify(payload, null, 2));
+                    
+                    // Optional: give user feedback
+                    alert('Settings saved! Check the console for the JSON payload.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
