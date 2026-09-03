@@ -32,7 +32,6 @@ export async function POST(req: Request) {
       system: aiConfig.system,
       messages: validMessages,
       temperature: aiConfig.temperature,
-      maxTokens: aiConfig.maxTokens,
       tools: {
         scoreLead: tool({
           description: 'Scores a lead based on company profile parameters.',
@@ -42,7 +41,7 @@ export async function POST(req: Request) {
             employeeCount: z.number().describe('The number of employees at the company.'),
             estimatedBudget: z.number().optional().describe('The estimated budget of the company in USD, if known.'),
           }),
-          execute: async ({ companyName, industry, employeeCount, estimatedBudget }) => {
+          execute: async ({ companyName, industry, employeeCount, estimatedBudget }: { companyName: string, industry: string, employeeCount: number, estimatedBudget?: number }) => {
             // Mock scoring algorithm
             await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
             

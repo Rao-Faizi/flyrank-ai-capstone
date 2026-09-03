@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Message } from 'ai';
+import { UIMessage } from 'ai';
 import { Bot, User, AlertTriangle, RotateCcw } from 'lucide-react';
 import { ToolInvocationRenderer } from './ToolInvocationRenderer';
 
 interface ChatMessagesProps {
-  messages: Message[];
+  messages: UIMessage[];
   isLoading: boolean;
   error?: Error | undefined;
   reload?: () => void;
