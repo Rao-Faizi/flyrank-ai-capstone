@@ -26,3 +26,23 @@ This project is built using:
 - [ ] Setup centralized error handling and logging.
 - [ ] Add unit and integration tests.
 - [ ] Finalize deployment configurations.
+
+## Generative UI Tool Contracts
+
+### `scoreLead`
+Analyzes a lead based on company profile parameters and returns a structured score and recommendation.
+- **Name:** `scoreLead`
+- **Parameters Schema:**
+  - `companyName` (string): The name of the company.
+  - `industry` (string): The industry the company operates in.
+  - `employeeCount` (number): The number of employees at the company.
+  - `estimatedBudget` (number, optional): The estimated budget of the company in USD, if known.
+- **Return Shape:**
+  ```typescript
+  {
+    companyName: string;
+    score: number;
+    tier: string;
+    recommendation: string;
+  }
+  ```

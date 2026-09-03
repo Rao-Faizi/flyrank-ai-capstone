@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Message } from 'ai';
 import { Bot, User } from 'lucide-react';
+import { ToolInvocationRenderer } from './ToolInvocationRenderer';
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -43,10 +44,17 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading 
                   {message.content || ((message as any).parts ? (message as any).parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') : '')}
                 </p>
               ) : (
-                <div className="prose prose-invert prose-sm max-w-none text-slate-200">
-                  <ReactMarkdown>
-                    {message.content || ((message as any).parts ? (message as any).parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') : '')}
-                  </ReactMarkdown>
+                <div className="flex flex-col gap-3">
+                  {(message.content || ((message as any).parts && (message as any).parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join(''))) && (
+                    <div className="prose prose-invert prose-sm max-w-none text-slate-200">
+                      <ReactMarkdown>
+                        {message.content || ((message as any).parts ? (message as any).parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') : '')}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                  {message.toolInvocations?.map((toolInvocation: any) => (
+                    <ToolInvocationRenderer key={toolInvocation.toolCallId} toolInvocation={toolInvocation} />
+                  ))}
                 </div>
               )}
             </div>
