@@ -84,7 +84,10 @@ export const ChatInterface: React.FC = () => {
       <div className="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-20 shrink-0">
         <div>
           <h2 className="text-sm font-semibold text-emerald-400">AI Qualification Assistant</h2>
-          <p className="text-xs text-slate-400">Powered by Gemini 2.5 Flash</p>
+          <div className="flex gap-3 text-xs text-slate-400">
+            <span>Powered by Gemini 1.5 Flash</span>
+            <a href="/demo" className="text-emerald-500 hover:underline">View Button Demo →</a>
+          </div>
         </div>
         <button
           onClick={() => {
