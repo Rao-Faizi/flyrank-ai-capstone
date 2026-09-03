@@ -8,7 +8,7 @@ import { ChevronDown, RefreshCcw } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export const ChatInterface: React.FC = () => {
-  const { messages, status, stop, regenerate, setMessages, sendMessage, error, append } = useChat({
+  const { messages, status, stop, regenerate, setMessages, error, append } = useChat({
     id: 'capstone-qualification-chat',
   });
 
@@ -21,7 +21,7 @@ export const ChatInterface: React.FC = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
-    sendMessage({ text: input });
+    append({ role: 'user', content: input });
     setInput('');
   };
 
