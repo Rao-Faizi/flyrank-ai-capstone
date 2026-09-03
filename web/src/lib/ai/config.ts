@@ -10,8 +10,8 @@ Format your responses using Markdown for readability (e.g., bullet points, bold 
 
 // Centralized model configuration
 export const aiConfig = {
-  // Using gemini-2.5-flash as the active valid model
-  model: google('gemini-2.5-flash'),
+  // Using gemini-1.5-flash as the active valid model
+  model: google('gemini-1.5-flash'),
   system: SYSTEM_PROMPT,
   temperature: 0.7,
   maxTokens: 1024,
