@@ -73,8 +73,8 @@ export async function POST(req: Request) {
     // Log the available methods on the result object to see what stream responses it supports
     console.log('Available result keys:', Object.keys(result));
     
-    // Fallback to data stream for now
-    return aiExports.createUIMessageStreamResponse(result);
+    // Return standard stream response
+    return result.toDataStreamResponse();
   } catch (error) {
     console.error('API Chat Error:', error);
     return new Response(JSON.stringify({ error: 'Failed to process chat request' }), {
