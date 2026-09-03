@@ -1,16 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Message } from 'ai';
-import { Bot, User } from 'lucide-react';
+import { Bot, User, AlertTriangle, RotateCcw } from 'lucide-react';
 import { ToolInvocationRenderer } from './ToolInvocationRenderer';
 
 interface ChatMessagesProps {
   messages: Message[];
   isLoading: boolean;
+  error?: Error | undefined;
+  reload?: () => void;
 }
 
-export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
+export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading, error, reload }) => {
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const handleRetry = async () => {
+    if (!reload || isRetrying) return;
+    setIsRetrying(true);
+    try {
+      await reload();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
+  const lastMessage = messages[messages.length - 1];
+  const showRetry = error && lastMessage && (lastMessage.role === 'user' || (lastMessage.role === 'assistant' && !lastMessage.content && (!lastMessage.toolInvocations || lastMessage.toolInvocations.length === 0)));
+
   return (
     <div className="flex flex-col space-y-6 pb-4">
       <AnimatePresence initial={false}>
@@ -72,22 +89,38 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading 
             <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-slate-700 text-slate-200">
               <Bot size={16} />
             </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl rounded-tl-sm px-5 py-3 flex items-center gap-1">
-              <motion.div
-                className="w-2 h-2 bg-slate-400 rounded-full"
-                animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
-              />
-              <motion.div
-                className="w-2 h-2 bg-slate-400 rounded-full"
-                animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
-              />
-              <motion.div
-                className="w-2 h-2 bg-slate-400 rounded-full"
-                animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
-              />
+            {/* Real Skeleton Loader instead of bouncing dots */}
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl rounded-tl-sm px-5 py-4 flex flex-col gap-2.5 w-64 animate-pulse">
+              <div className="h-3 bg-slate-700/50 rounded-full w-3/4"></div>
+              <div className="h-3 bg-slate-700/50 rounded-full w-full"></div>
+              <div className="h-3 bg-slate-700/50 rounded-full w-5/6"></div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Mid-Stream Failure UI */}
+        {showRetry && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center pt-4"
+          >
+            <div className="flex flex-col items-center gap-3 bg-rose-500/10 border border-rose-500/20 px-6 py-4 rounded-xl text-center max-w-sm">
+              <div className="flex items-center gap-2 text-rose-400 font-medium text-sm">
+                <AlertTriangle className="w-4 h-4" />
+                <span>Connection Interrupted</span>
+              </div>
+              <p className="text-xs text-rose-400/80 mb-2">
+                There was a problem generating the response. Please try again.
+              </p>
+              <button
+                onClick={handleRetry}
+                disabled={isRetrying}
+                className="flex items-center gap-2 text-xs font-medium bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 px-4 py-2 rounded-full transition-colors disabled:opacity-50"
+              >
+                <RotateCcw className={`w-3.5 h-3.5 ${isRetrying ? 'animate-spin' : ''}`} />
+                {isRetrying ? 'Retrying...' : 'Retry Message'}
+              </button>
             </div>
           </motion.div>
         )}

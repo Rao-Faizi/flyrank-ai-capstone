@@ -8,7 +8,7 @@ import { ChevronDown, RefreshCcw } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export const ChatInterface: React.FC = () => {
-  const { messages, status, stop, regenerate, setMessages, sendMessage } = useChat({
+  const { messages, status, stop, regenerate, setMessages, sendMessage, error, append } = useChat({
     id: 'capstone-qualification-chat',
   });
 
@@ -23,6 +23,10 @@ export const ChatInterface: React.FC = () => {
     if (!input.trim()) return;
     sendMessage({ text: input });
     setInput('');
+  };
+
+  const handleEmptyStateClick = (prompt: string) => {
+    append({ role: 'user', content: prompt });
   };
 
   const isLoading = status === 'streaming' || status === 'submitted';
@@ -76,11 +80,11 @@ export const ChatInterface: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[80vh] min-h-[500px] w-full max-w-2xl mx-auto bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative">
-      <div className="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-20">
+    <div className="flex flex-col h-[100dvh] sm:h-full sm:max-h-[85dvh] min-h-[500px] w-full max-w-3xl mx-auto bg-slate-950 sm:border border-slate-800 sm:rounded-2xl overflow-hidden sm:shadow-2xl relative">
+      <div className="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-20 shrink-0">
         <div>
           <h2 className="text-sm font-semibold text-emerald-400">AI Qualification Assistant</h2>
-          <p className="text-xs text-slate-400">Powered by Gemini 3.1 Flash</p>
+          <p className="text-xs text-slate-400">Powered by Gemini 2.5 Flash</p>
         </div>
         <button
           onClick={() => {
@@ -101,14 +105,33 @@ export const ChatInterface: React.FC = () => {
         className="flex-1 overflow-y-auto p-4 scroll-smooth"
       >
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-            <h3 className="text-lg font-medium text-slate-200 mb-2">Start a conversation</h3>
-            <p className="text-sm text-slate-400 max-w-sm">
-              I can help qualify leads, summarize requirements, or answer questions about the platform.
+          <div className="h-full flex flex-col items-center justify-center text-center opacity-70">
+            <h3 className="text-xl font-medium text-slate-200 mb-3">No conversations yet</h3>
+            <p className="text-sm text-slate-400 max-w-sm mb-6">
+              I can help qualify leads and summarize requirements. Try asking me about one below:
             </p>
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              <button 
+                onClick={() => handleEmptyStateClick("Score a lead for Acme Corp, a tech company with 500 employees and a $100k budget")}
+                className="text-xs text-left p-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 hover:border-emerald-500/50 transition-colors text-slate-300"
+              >
+                "Score a lead for Acme Corp, a tech company with 500 employees and a $100k budget"
+              </button>
+              <button 
+                onClick={() => handleEmptyStateClick("Can you score an SMB retail company with 15 employees?")}
+                className="text-xs text-left p-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 hover:border-emerald-500/50 transition-colors text-slate-300"
+              >
+                "Can you score an SMB retail company with 15 employees?"
+              </button>
+            </div>
           </div>
         ) : (
-          <ChatMessages messages={messages} isLoading={isLoading && !isAssistantResponding} />
+          <ChatMessages 
+            messages={messages} 
+            isLoading={isLoading && !isAssistantResponding} 
+            error={error}
+            reload={reload}
+          />
         )}
       </div>
 
@@ -131,7 +154,7 @@ export const ChatInterface: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="p-4 bg-slate-900/50 border-t border-slate-800 backdrop-blur-md z-20">
+      <div className="p-4 bg-slate-900/95 border-t border-slate-800 backdrop-blur-md z-20 shrink-0 pb-safe">
         <ChatInput 
           input={input} 
           handleInputChange={handleInputChange} 
