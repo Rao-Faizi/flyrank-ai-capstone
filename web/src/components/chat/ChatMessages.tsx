@@ -103,24 +103,40 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading,
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center pt-4"
+            className="flex flex-col pt-4 w-full"
           >
-            <div className="flex flex-col items-center gap-3 bg-rose-500/10 border border-rose-500/20 px-6 py-4 rounded-xl text-center max-w-sm">
-              <div className="flex items-center gap-2 text-rose-400 font-medium text-sm">
-                <AlertTriangle className="w-4 h-4" />
-                <span>Connection Interrupted</span>
+            <div className="flex flex-col gap-4 bg-rose-500/10 border border-rose-500/20 p-5 rounded-xl w-full">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-rose-400 font-medium text-base">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span>
+                    {error?.message?.includes('429') || error?.message?.includes('Rate limit') 
+                      ? 'Rate Limit Exceeded (HTTP 429)' 
+                      : 'Execution Failure & Interrupted Stream'}
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold tracking-wider text-rose-500 bg-rose-500/20 px-2 py-1 rounded">
+                  HANDLED ERROR
+                </span>
               </div>
-              <p className="text-xs text-rose-400/80 mb-2">
-                There was a problem generating the response. Please try again.
-              </p>
-              <button
-                onClick={handleRetry}
-                disabled={isRetrying}
-                className="flex items-center gap-2 text-xs font-medium bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 px-4 py-2 rounded-full transition-colors disabled:opacity-50"
-              >
-                <RotateCcw className={`w-3.5 h-3.5 ${isRetrying ? 'animate-spin' : ''}`} />
-                {isRetrying ? 'Retrying...' : 'Retry Message'}
-              </button>
+              
+              <div className="text-sm text-rose-400/80 font-mono bg-rose-950/30 p-3 rounded-lg overflow-x-auto">
+                {error?.message || 'An unexpected connection error occurred.'}
+              </div>
+
+              <div className="flex items-center justify-between border-t border-rose-500/20 pt-4 mt-2">
+                <div className="text-xs text-rose-400/60 italic truncate pr-4">
+                  Will retry prompt: "{lastMessage?.content || 'Previous action'}"
+                </div>
+                <button
+                  onClick={handleRetry}
+                  disabled={isRetrying}
+                  className="flex-shrink-0 flex items-center gap-2 text-sm font-bold bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <RotateCcw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
+                  {isRetrying ? 'Retrying...' : 'Retry Failed Action'}
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
