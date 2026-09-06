@@ -53,8 +53,9 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading,
             <div
               className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-5 py-3 ${message.role === 'user'
                 ? 'bg-emerald-600 text-white rounded-tr-sm'
-                : 'bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700'
+                : 'bg-slate-800 text-slate-100 rounded-tl-sm border border-slate-700'
                 }`}
+              aria-live={message.role === 'assistant' ? 'polite' : 'off'}
             >
               {message.role === 'user' ? (
                 <p className="whitespace-pre-wrap text-sm leading-relaxed">

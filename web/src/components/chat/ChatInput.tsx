@@ -68,7 +68,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <button
             type="button"
             onClick={stop}
-            className="p-2 bg-rose-900/50 hover:bg-rose-900 text-rose-400 rounded-lg transition"
+            className="p-2 bg-rose-900/50 hover:bg-rose-900 text-rose-400 rounded-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
             aria-label="Stop generating"
           >
             <Square size={18} fill="currentColor" />
@@ -77,7 +77,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <button
             type="submit"
             disabled={!input || !input.trim()}
-            className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             aria-label="Send message"
           >
             <Send size={18} />
