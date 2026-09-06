@@ -1,0 +1,65 @@
+# 3D Real Estate Viewer Implementation Plan
+
+Your detailed specification is incredible. It maps perfectly to every single requirement and evaluation benchmark in the assignment while ensuring maximum performance (zero asset-download latency!) and a stunning user experience. 
+
+## User Review Required
+
+The plan has been fully updated to reflect your feature list. Once you are ready, give me the green light and I will start building!
+
+## Proposed Features & Assignment Alignment
+
+### Core 3D Scene & Staging
+- **React Three Fiber Canvas:** Fully hardware-accelerated WebGL viewport rendered inside Next.js using `@react-three/fiber` and `@react-three/drei`.
+- **Procedural Architectural Geometry:** A multi-tiered modular building (Ground Lobby, Commercial Office Levels, Residential Suites, and Penthouse) built with native Three.js primitives for zero asset-download latency.
+- **Environment & Staged Lighting:** Directional key light, soft ambient fill, contact shadows, and an environment map with a toggleable Day/Night lighting cycle.
+- **Camera Rig & Orbit Controls:** Smooth orbit, pan, and pinch-to-zoom controls configured with polar angle limits (preventing the camera from dipping below the floor grid).
+
+### Meaningful Interactions (Beyond Orbiting)
+- **Interactive Tier Selection (Floor Exploder):** Clicking or tapping any floor smoothly animates it upward along the Y-axis using spring physics (via `framer-motion-3d` or `@react-spring/three`), isolating the selected level.
+- **Contextual Floor Metadata HUD:** An overlay HUD card displaying real-time floor metrics (e.g., Square Footage, Occupancy Type, Pricing, and Lead Compatibility) based on the selected tier.
+- **Material & Style Configurator:** A HUD control panel (`leva`) to switch between three real estate architectural finishes (Modern Slate, Emerald Eco, Obsidian High-Tech), toggle Wireframe mode, and play/pause auto-rotation.
+
+### Performance, A11y & Responsible Loading
+- **Client-Only Lazy Loading:** Dynamic import (`next/dynamic` with `ssr: false`) ensuring the 3D bundle does not bloat initial server-side hydration.
+- **Skeleton / Static Fallback:** A styled CSS isometric building card rendered while WebGL initializes.
+- **Reduced-Motion Support:** Detects `prefers-reduced-motion: reduce` to automatically disable camera animations, floor explosion physics, and auto-rotation.
+- **Mobile-Optimized Touch Handling:** Touch-action CSS optimizations preventing page-scroll conflicts during orbit gestures.
+
+### Capstone Integration
+- **Direct Navigation Link:** Embedded in the main dashboard header, allowing reviewers to jump seamlessly between the AI Lead Chat and the 3D Property Viewer.
+- **Performance Budget Documentation:** Concrete metrics detailing bundle impact, draw call counts, geometry size optimizations, and future enhancements added to `README.md`.
+
+## Proposed Changes
+
+---
+
+### Dependencies
+
+#### [NEW] `npm install three @react-three/fiber @react-three/drei leva framer-motion framer-motion-3d`
+#### [NEW] `npm install -D @types/three`
+
+---
+
+### Components
+
+#### [NEW] `web/src/app/3d-viewer/page.tsx`
+The new route dedicated to the Real Estate viewer, making it easily accessible via the dashboard header.
+
+#### [NEW] `web/src/components/3d/BuildingScene.tsx`
+The core R3F scene. Houses the procedural geometries, lighting setups, environment maps, and physics wrappers for the floor explosion interactions.
+
+#### [NEW] `web/src/components/3d/RealEstateViewerWrapper.tsx`
+Client-side component utilizing `next/dynamic` to wrap `BuildingScene.tsx` in a `<Suspense>` boundary and a CSS-based isometric fallback. Includes the `leva` configurator panel and state management for the selected floor metrics.
+
+#### [MODIFY] `web/src/components/layout/Header.tsx` (or similar)
+Add a navigation link to `/3d-viewer`.
+
+## Verification Plan
+
+### Manual Verification
+1. Run `npm run dev` and navigate to `/3d-viewer`.
+2. Verify the CSS fallback loads before the canvas.
+3. Test clicking floors to trigger the "explosion" physics and verify the HUD updates.
+4. Test the Leva configurator (materials, wireframe, day/night, auto-rotate).
+5. Emulate `prefers-reduced-motion` in DevTools to ensure animations disable safely.
+6. Check mobile emulation to ensure touch controls pan/orbit without scrolling the page.

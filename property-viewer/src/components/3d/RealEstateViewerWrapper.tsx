@@ -1,6 +1,5 @@
-'use client';
 
-import React, { useState, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Leva, useControls } from 'leva';
@@ -36,7 +35,7 @@ export default function RealEstateViewerWrapper() {
   const selectedFloor = FLOORS.find(f => f.id === selectedFloorId);
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] bg-zinc-950 overflow-hidden">
+    <div className="relative w-full h-screen bg-zinc-950 overflow-hidden">
       {/* Leva UI - specifically bound to not pollute global space if not needed, but floating top-right */}
       <div className="absolute top-4 right-4 z-10 shadow-2xl rounded-xl overflow-hidden">
         <Leva 

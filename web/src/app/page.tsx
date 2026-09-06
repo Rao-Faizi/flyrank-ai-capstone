@@ -11,7 +11,8 @@ export default function Home() {
         </p>
 
         <a 
-          href="/3d-viewer" 
+          href="http://localhost:5173" 
+          target="_blank"
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-full font-medium transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

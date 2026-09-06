@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { Environment, ContactShadows } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useReducedMotion } from 'framer-motion';
@@ -52,7 +52,7 @@ function FloorGroup({ floor, isSelected, selectedFloorId, onSelectFloor, materia
     }
   }
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (!groupRef.current) return;
     
     if (prefersReducedMotion) {
