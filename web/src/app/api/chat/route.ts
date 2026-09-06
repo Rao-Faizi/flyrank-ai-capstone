@@ -12,14 +12,27 @@ export async function POST(req: Request) {
     const aiExports = await import('ai');
     console.log('AI Response Exports:', Object.keys(aiExports).filter(k => k.toLowerCase().includes('response')));
 
-    // Sanitize messages to remove any empty or failed ones (like the previous 404 result)
-    const validMessages = messages.filter(
+    // PRODUCTION HYGIENE: Input Caps & Rate Limiting
+    // 1. Limit conversation history to the last 10 messages to prevent token drain
+    const MAX_HISTORY = 10;
+    const cappedMessages = messages.slice(-MAX_HISTORY);
+
+    // Sanitize messages to remove any empty or failed ones, and apply length caps
+    const validMessages = cappedMessages.filter(
       (m: any) => m.role && (m.content || (m.parts && m.parts.length > 0))
     ).map((m: any) => {
       let content = m.content;
       if (!content && m.parts) {
         content = m.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text || (p as any).text).join('');
       }
+      
+      // 2. Aggressive Input Cap: Truncate messages to 500 characters max
+      const MAX_LENGTH = 500;
+      if (typeof content === 'string' && content.length > MAX_LENGTH) {
+        console.warn(`[Input Cap] Truncating oversized message of length ${content.length}`);
+        content = content.substring(0, MAX_LENGTH) + '... [TRUNCATED]';
+      }
+
       return { role: m.role, content };
     }).filter((m: any) => m.content && m.content.trim() !== '');
 
