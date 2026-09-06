@@ -1,17 +1,15 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Animation Details
+## 3D Real Estate Viewer - The Deliverables
+**What I built:** I integrated an Interactive 3D Real Estate Viewer directly into the FlyRank AI Capstone. Users can explore a multi-tiered procedural skyscraper representing potential properties. Clicking any floor triggers a "Floor Exploder" animation, isolating the chosen tier and displaying dynamic property metrics (e.g. Lead Qualification Match Score, Square Footage) in an overlay HUD.
 
-The chat interface uses Framer Motion to provide a smooth, natural feel. 
-- **Easing:** A custom `easeOut` curve (`[0.25, 0.1, 0.25, 1]`) is used to make new messages slide in quickly but settle gently, mimicking natural conversation pacing.
-- **Duration:** New message appearances use a snappy `0.3s` duration to maintain responsiveness without feeling rushed, while layout changes (like auto-scrolling) use a slightly longer `0.4s` spring animation to prevent jarring visual jumps.
-
-## 3D Real Estate Viewer - Performance Budget
-The Interactive 3D Real Estate Viewer (`/3d-viewer`) is heavily optimized to ensure minimal impact on the lead qualification flow:
+**Performance Budget & Optimizations:**
 - **Zero Asset-Download Latency:** We avoided downloading external `.glb` models entirely. The building is constructed procedurally using native `three.js` Box and Plane geometries, resulting in virtually 0 bytes of model payload.
 - **Lazy Loading:** The entire 3D chunk (`@react-three/fiber`, `three`, and physics engines) is dynamically imported via `next/dynamic` with `ssr: false`. It does not bloat the initial page load or block server-side rendering.
-- **Draw Call Optimizations:** The geometries are kept simple and modular. Future enhancements could merge the floor geometries using `InstancedMesh` if the building scales to hundreds of floors.
 - **A11y:** Animations and auto-rotations respect `prefers-reduced-motion: reduce`.
+
+**What I'd add with more time:** 
+With more time, I would implement `InstancedMesh` for rendering hundreds of floors with a single draw call to optimize scale. I would also add camera transition animations that zoom into the specific floor upon click, potentially seamlessly transitioning from the exterior architectural view into an interior 3D walkthrough of the specific apartment.
 
 ## Getting Started
 
