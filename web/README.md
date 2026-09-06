@@ -1,5 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Animation Details
+
+The chat interface uses Framer Motion to provide a smooth, natural feel. 
+- **Easing:** A custom `easeOut` curve (`[0.25, 0.1, 0.25, 1]`) is used to make new messages slide in quickly but settle gently, mimicking natural conversation pacing.
+- **Duration:** New message appearances use a snappy `0.3s` duration to maintain responsiveness without feeling rushed, while layout changes (like auto-scrolling) use a slightly longer `0.4s` spring animation to prevent jarring visual jumps.
+
 ## Getting Started
 
 First, run the development server:

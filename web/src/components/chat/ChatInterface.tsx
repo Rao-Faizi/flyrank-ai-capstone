@@ -13,7 +13,8 @@ export const ChatInterface: React.FC = () => {
     id: 'capstone-qualification-chat',
   });
   console.log('useChat keys:', Object.keys(chat));
-  const { messages, status, stop, regenerate, setMessages, error, append } = chat;
+  const { messages, status, stop, regenerate, setMessages, error } = chat;
+  const submitMessage = chat.append || (chat as any).sendMessage || (chat as any).submitMessage;
 
   const [input, setInput] = useState('');
 
@@ -24,12 +25,12 @@ export const ChatInterface: React.FC = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
-    append({ role: 'user', content: input });
+    submitMessage({ role: 'user', content: input });
     setInput('');
   };
 
   const handleEmptyStateClick = (prompt: string) => {
-    append({ role: 'user', content: prompt });
+    submitMessage({ role: 'user', content: prompt });
   };
 
   const isLoading = status === 'streaming' || status === 'submitted';
