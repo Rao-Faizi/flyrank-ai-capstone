@@ -9,9 +9,11 @@ import { ChevronDown, RefreshCcw } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export const ChatInterface: React.FC = () => {
-  const { messages, status, stop, regenerate, setMessages, error, append } = useChat({
+  const chat = useChat({
     id: 'capstone-qualification-chat',
   });
+  console.log('useChat keys:', Object.keys(chat));
+  const { messages, status, stop, regenerate, setMessages, error, append } = chat;
 
   const [input, setInput] = useState('');
 
