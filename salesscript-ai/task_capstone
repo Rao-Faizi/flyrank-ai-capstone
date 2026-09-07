@@ -1,0 +1,11 @@
+- [ ] Scaffold Vite + React + TS project
+- [ ] Install dependencies (Tailwind, Vitest, RTL, Zod)
+- [ ] Create TypeScript types
+- [ ] Build generateScript.ts (AI + Zod parsing)
+- [ ] Build components (ScriptForm, ScriptResult, ErrorBanner, LoadingSkeleton)
+- [ ] Build useGenerateScript hook
+- [ ] Build App.tsx (full UI)
+- [ ] Write 6 unit tests
+- [ ] Write README
+- [ ] Build and verify
+- [ ] Push to GitHub + Deploy to Vercel
