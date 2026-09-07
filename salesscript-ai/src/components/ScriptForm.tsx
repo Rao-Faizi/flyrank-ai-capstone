@@ -1,25 +1,38 @@
 import React, { useState } from 'react';
-import type { ScriptInput } from '../types/script';
+import type { ScriptInput, AIProvider } from '../types/script';
 
 interface ScriptFormProps {
   onSubmit: (input: ScriptInput) => void;
   isLoading: boolean;
 }
 
+const PROVIDERS: { value: AIProvider; label: string; badge: string; color: string }[] = [
+  { value: 'openai', label: 'GPT-4o Mini', badge: 'OpenAI', color: 'emerald' },
+  { value: 'gemini', label: 'Gemini Flash', badge: 'Google', color: 'teal' },
+];
+
 /**
  * The main input form. Uses controlled inputs with HTML5 validation.
  * All labels are explicitly associated with inputs via `htmlFor` / `id` for accessibility.
+ * Includes a model selector toggle so users can choose between OpenAI and Gemini.
  */
 export const ScriptForm: React.FC<ScriptFormProps> = ({ onSubmit, isLoading }) => {
   const [companyName, setCompanyName] = useState('');
   const [industry, setIndustry] = useState('');
   const [productBullets, setProductBullets] = useState('');
   const [yourName, setYourName] = useState('');
+  const [provider, setProvider] = useState<AIProvider>('openai');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyName.trim() || !industry.trim() || !productBullets.trim()) return;
-    onSubmit({ companyName: companyName.trim(), industry: industry.trim(), productBullets: productBullets.trim(), yourName: yourName.trim() || undefined });
+    onSubmit({
+      companyName: companyName.trim(),
+      industry: industry.trim(),
+      productBullets: productBullets.trim(),
+      yourName: yourName.trim() || undefined,
+      provider,
+    });
   };
 
   const isDisabled = isLoading || !companyName.trim() || !industry.trim() || !productBullets.trim();
@@ -34,6 +47,35 @@ export const ScriptForm: React.FC<ScriptFormProps> = ({ onSubmit, isLoading }) =
   return (
     <form onSubmit={handleSubmit} noValidate aria-label="Sales script generator form">
       <div className="space-y-4">
+
+        {/* Model selector */}
+        <div>
+          <span className="block text-sm font-medium text-slate-300 mb-2">
+            AI Model
+          </span>
+          <div role="group" aria-label="Choose AI model" className="flex gap-2">
+            {PROVIDERS.map(({ value, label, badge }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setProvider(value)}
+                aria-pressed={provider === value}
+                className={`
+                  flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-all duration-150
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400
+                  ${provider === value
+                    ? 'border-emerald-500 bg-emerald-950/60 text-emerald-300'
+                    : 'border-slate-700 bg-slate-800/40 text-slate-400 hover:border-slate-500 hover:text-slate-300'
+                  }
+                `}
+              >
+                <span className="block text-[10px] uppercase tracking-wider opacity-60 mb-0.5">{badge}</span>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div>
           <label htmlFor="companyName" className="block text-sm font-medium text-slate-300 mb-1.5">
             Prospect Company Name <span aria-hidden="true" className="text-emerald-400">*</span>
@@ -113,7 +155,9 @@ export const ScriptForm: React.FC<ScriptFormProps> = ({ onSubmit, isLoading }) =
           "
           aria-busy={isLoading}
         >
-          {isLoading ? 'Generating Script…' : 'Generate Sales Script'}
+          {isLoading
+            ? `Generating via ${provider === 'openai' ? 'OpenAI' : 'Gemini'}…`
+            : 'Generate Sales Script'}
         </button>
       </div>
     </form>

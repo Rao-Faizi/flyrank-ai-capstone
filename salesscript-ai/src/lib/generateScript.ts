@@ -1,90 +1,99 @@
 import { z } from 'zod';
 import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ScriptInput, SalesScript } from '../types/script';
 
 // Zod schema for strict validation of the AI's JSON response
 const SalesScriptSchema = z.object({
-  subjectLine: z.string().min(1, 'Subject line is required'),
-  openingHook: z.string().min(1, 'Opening hook is required'),
-  valueProposition: z.string().min(1, 'Value proposition is required'),
-  socialProof: z.string().min(1, 'Social proof is required'),
-  callToAction: z.string().min(1, 'Call to action is required'),
+  subjectLine: z.string().min(1),
+  openingHook: z.string().min(1),
+  valueProposition: z.string().min(1),
+  socialProof: z.string().min(1),
+  callToAction: z.string().min(1),
 });
 
-/**
- * Builds the structured prompt.
- * We use OpenAI's JSON mode so the model is forced to return valid JSON only.
- */
-function buildPrompt(input: ScriptInput): string {
-  return `You are an expert B2B sales copywriter. Generate a cold outreach email for the following prospect.
-
-Company Name: ${input.companyName}
-Industry: ${input.industry}
-Product/Value Bullets:
-${input.productBullets}
-${input.yourName ? `Sender Name: ${input.yourName}` : ''}
-
-Return a JSON object with exactly these five fields:
+const PROMPT_INSTRUCTIONS = `Return a JSON object with exactly these five fields:
 - "subjectLine": A compelling, specific subject line (max 8 words)
 - "openingHook": A 1-2 sentence personalized opening referencing the company/industry
 - "valueProposition": 2-3 sentences on what problem you solve for them specifically
 - "socialProof": 1 sentence social proof or credibility signal (use [Company X] placeholder if needed)
 - "callToAction": A single, low-friction CTA sentence`;
+
+function buildUserPrompt(input: ScriptInput): string {
+  return `Generate a cold outreach email for:
+Company: ${input.companyName}
+Industry: ${input.industry}
+Product Value Bullets:
+${input.productBullets}
+${input.yourName ? `Sender: ${input.yourName}` : ''}
+
+${PROMPT_INSTRUCTIONS}`;
 }
 
-/**
- * Main AI generation function using OpenAI (ChatGPT).
- * Uses JSON mode to guarantee valid JSON output.
- * Validated with Zod before returning to keep the UI type-safe.
- */
-export async function generateScript(input: ScriptInput): Promise<SalesScript> {
+// ─── OpenAI ───────────────────────────────────────────────────────────────────
+async function generateWithOpenAI(input: ScriptInput): Promise<string> {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('Missing API key. Please set VITE_OPENAI_API_KEY in your .env.local file.');
-  }
+  if (!apiKey) throw new Error('Missing VITE_OPENAI_API_KEY in your .env.local file.');
 
-  const client = new OpenAI({
-    apiKey,
-    dangerouslyAllowBrowser: true, // Required for client-side usage
-  });
+  const client = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 
-  let rawContent: string | null;
   try {
-    const response = await client.chat.completions.create({
-      model: 'gpt-4o-mini', // Fast and cheap — perfect for structured output
-      response_format: { type: 'json_object' }, // Forces valid JSON output
+    const res = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
       messages: [
-        {
-          role: 'system',
-          content: 'You are an expert B2B sales copywriter. Always respond with valid JSON only.',
-        },
-        {
-          role: 'user',
-          content: buildPrompt(input),
-        },
+        { role: 'system', content: 'You are an expert B2B sales copywriter. Always respond with valid JSON only.' },
+        { role: 'user', content: buildUserPrompt(input) },
       ],
       temperature: 0.7,
       max_tokens: 600,
     });
-
-    rawContent = response.choices[0]?.message?.content ?? null;
-    if (!rawContent) throw new Error('Empty response from AI.');
+    const content = res.choices[0]?.message?.content ?? '';
+    if (!content) throw new Error('Empty response from OpenAI.');
+    return content;
   } catch (err) {
-    // Surface OpenAI-specific errors with a clear message
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    if (message.includes('401') || message.includes('Incorrect API key')) {
-      throw new Error('Invalid API key. Please check your VITE_OPENAI_API_KEY.');
-    }
-    if (message.includes('429')) {
-      throw new Error('Rate limit reached. Please wait a moment and try again.');
-    }
-    throw new Error('Failed to reach the AI service. Please check your connection and try again.');
+    const msg = err instanceof Error ? err.message : '';
+    if (msg.includes('401') || msg.includes('Incorrect API key')) throw new Error('Invalid OpenAI API key.');
+    if (msg.includes('429')) throw new Error('OpenAI rate limit reached. Please wait and try again.');
+    throw new Error('Failed to reach OpenAI. Please check your connection and try again.');
   }
+}
 
-  // Parse and Zod-validate — never render half-baked data
+// ─── Gemini ───────────────────────────────────────────────────────────────────
+async function generateWithGemini(input: ScriptInput): Promise<string> {
+  const apiKey = import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey) throw new Error('Missing VITE_GOOGLE_GENERATIVE_AI_API_KEY in your .env.local file.');
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+  const prompt = `You are an expert B2B sales copywriter. ${buildUserPrompt(input)}\n\nReturn ONLY valid JSON. No markdown, no code blocks.`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const raw = result.response.text()
+      .replace(/```json\s*/gi, '')
+      .replace(/```\s*/gi, '')
+      .trim();
+    if (!raw) throw new Error('Empty response from Gemini.');
+    return raw;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : '';
+    if (msg.includes('API_KEY_INVALID') || msg.includes('401')) throw new Error('Invalid Gemini API key.');
+    if (msg.includes('429')) throw new Error('Gemini rate limit reached. Please wait and try again.');
+    throw new Error('Failed to reach Gemini. Please check your connection and try again.');
+  }
+}
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+export async function generateScript(input: ScriptInput): Promise<SalesScript> {
+  const raw = input.provider === 'openai'
+    ? await generateWithOpenAI(input)
+    : await generateWithGemini(input);
+
   let parsed: unknown;
   try {
-    parsed = JSON.parse(rawContent);
+    parsed = JSON.parse(raw);
   } catch {
     throw new Error('The AI returned an unexpected format. Please try again.');
   }

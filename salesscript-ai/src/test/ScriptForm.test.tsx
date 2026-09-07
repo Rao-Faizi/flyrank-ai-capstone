@@ -43,13 +43,14 @@ describe('ScriptForm', () => {
       industry: 'SaaS',
       productBullets: '- Saves time',
       yourName: undefined,
+      provider: 'openai',
     });
   });
 
   it('shows loading state correctly', () => {
     render(<ScriptForm onSubmit={vi.fn()} isLoading={true} />);
     
-    const button = screen.getByRole('button', { name: /generating script/i });
+    const button = screen.getByRole('button', { name: /generating via/i });
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute('aria-busy', 'true');
   });
