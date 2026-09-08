@@ -1,9 +1,7 @@
 import { z } from 'zod';
-import OpenAI from 'openai';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ScriptInput, SalesScript } from '../types/script';
 
-// Zod schema for strict validation of the AI's JSON response
+// Zod schema for strict validation of the API response
 const SalesScriptSchema = z.object({
   subjectLine: z.string().min(1),
   openingHook: z.string().min(1),
@@ -12,93 +10,38 @@ const SalesScriptSchema = z.object({
   callToAction: z.string().min(1),
 });
 
-const PROMPT_INSTRUCTIONS = `Return a JSON object with exactly these five fields:
-- "subjectLine": A compelling, specific subject line (max 8 words)
-- "openingHook": A 1-2 sentence personalized opening referencing the company/industry
-- "valueProposition": 2-3 sentences on what problem you solve for them specifically
-- "socialProof": 1 sentence social proof or credibility signal (use [Company X] placeholder if needed)
-- "callToAction": A single, low-friction CTA sentence`;
-
-function buildUserPrompt(input: ScriptInput): string {
-  return `Generate a cold outreach email for:
-Company: ${input.companyName}
-Industry: ${input.industry}
-Product Value Bullets:
-${input.productBullets}
-${input.yourName ? `Sender: ${input.yourName}` : ''}
-
-${PROMPT_INSTRUCTIONS}`;
-}
-
-// ─── OpenAI ───────────────────────────────────────────────────────────────────
-async function generateWithOpenAI(input: ScriptInput): Promise<string> {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) throw new Error('OpenAI API key not found. Add VITE_OPENAI_API_KEY to your .env.local (local) or Vercel environment variables (production).');
-
-  const client = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-
-  try {
-    const res = await client.chat.completions.create({
-      model: 'gpt-4o-mini',
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: 'You are an expert B2B sales copywriter. Always respond with valid JSON only.' },
-        { role: 'user', content: buildUserPrompt(input) },
-      ],
-      temperature: 0.7,
-      max_tokens: 600,
-    });
-    const content = res.choices[0]?.message?.content ?? '';
-    if (!content) throw new Error('Empty response from OpenAI.');
-    return content;
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : '';
-    if (msg.includes('401') || msg.includes('Incorrect API key')) throw new Error('Invalid OpenAI API key.');
-    if (msg.includes('429')) throw new Error('OpenAI rate limit reached. Please wait and try again.');
-    throw new Error('Failed to reach OpenAI. Please check your connection and try again.');
-  }
-}
-
-// ─── Gemini ───────────────────────────────────────────────────────────────────
-async function generateWithGemini(input: ScriptInput): Promise<string> {
-  const apiKey = import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY;
-  if (!apiKey) throw new Error('Missing VITE_GOOGLE_GENERATIVE_AI_API_KEY in your .env.local file.');
-
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-  const prompt = `You are an expert B2B sales copywriter. ${buildUserPrompt(input)}\n\nReturn ONLY valid JSON. No markdown, no code blocks.`;
-
-  try {
-    const result = await model.generateContent(prompt);
-    const raw = result.response.text()
-      .replace(/```json\s*/gi, '')
-      .replace(/```\s*/gi, '')
-      .trim();
-    if (!raw) throw new Error('Empty response from Gemini.');
-    return raw;
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : '';
-    if (msg.includes('API_KEY_INVALID') || msg.includes('401')) throw new Error('Invalid Gemini API key.');
-    if (msg.includes('429')) throw new Error('Gemini rate limit reached. Please wait and try again.');
-    throw new Error('Failed to reach Gemini. Please check your connection and try again.');
-  }
-}
-
-// ─── Main export ──────────────────────────────────────────────────────────────
+/**
+ * Calls our own Vercel serverless function at /api/generate.
+ * The API keys (OpenAI / Gemini) live on the SERVER — never in the browser bundle.
+ * This is the production-safe pattern for client-side Vite apps.
+ */
 export async function generateScript(input: ScriptInput): Promise<SalesScript> {
-  const raw = input.provider === 'openai'
-    ? await generateWithOpenAI(input)
-    : await generateWithGemini(input);
-
-  let parsed: unknown;
+  let response: Response;
   try {
-    parsed = JSON.parse(raw);
+    response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        companyName: input.companyName,
+        industry: input.industry,
+        productBullets: input.productBullets,
+        yourName: input.yourName,
+        provider: input.provider,
+      }),
+    });
   } catch {
-    throw new Error('The AI returned an unexpected format. Please try again.');
+    throw new Error('Network error. Please check your connection and try again.');
   }
 
-  const validated = SalesScriptSchema.safeParse(parsed);
+  const data = await response.json();
+
+  if (!response.ok) {
+    // Surface the server-side error message directly
+    throw new Error(data?.error ?? 'An unexpected error occurred. Please try again.');
+  }
+
+  // Zod-validate before rendering — never trust raw API output
+  const validated = SalesScriptSchema.safeParse(data);
   if (!validated.success) {
     throw new Error('The AI response was incomplete. Please try again.');
   }
