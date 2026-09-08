@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 const SYSTEM_PROMPT = 'You are an expert B2B sales copywriter. Always respond with valid JSON only.';
 
@@ -52,16 +52,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let rawContent: string;
 
     if (provider === 'gemini') {
-      // ── Gemini ──
+      // ── Gemini (new @google/genai SDK — supports AQ. keys natively) ──
       const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
       if (!apiKey) return res.status(500).json({ error: 'Gemini API key not configured on server.' });
 
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-      const result = await model.generateContent(
-        `${SYSTEM_PROMPT}\n\n${prompt}\n\nReturn ONLY valid JSON. No markdown, no code blocks.`
-      );
-      rawContent = result.response.text()
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: `${SYSTEM_PROMPT}\n\n${prompt}\n\nReturn ONLY valid JSON. No markdown, no code blocks.`,
+      });
+      rawContent = (response.text ?? '')
         .replace(/```json\s*/gi, '')
         .replace(/```\s*/gi, '')
         .trim();
