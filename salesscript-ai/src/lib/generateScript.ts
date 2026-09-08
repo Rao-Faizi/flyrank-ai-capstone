@@ -33,7 +33,7 @@ ${PROMPT_INSTRUCTIONS}`;
 // ─── OpenAI ───────────────────────────────────────────────────────────────────
 async function generateWithOpenAI(input: ScriptInput): Promise<string> {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) throw new Error('Missing VITE_OPENAI_API_KEY in your .env.local file.');
+  if (!apiKey) throw new Error('OpenAI API key not found. Add VITE_OPENAI_API_KEY to your .env.local (local) or Vercel environment variables (production).');
 
   const client = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 
