@@ -52,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!apiKey) return res.status(500).json({ error: 'Gemini API key not configured on server.' });
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
     const result = await model.generateContent(
       `${SYSTEM_PROMPT}\n\n${prompt}\n\nReturn ONLY valid JSON. No markdown, no code blocks.`
     );
@@ -73,8 +73,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(parsed);
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('SERVER ACTION ERROR:', msg);
+    console.error('FULL ERROR:', err);
     if (msg.includes('429')) return res.status(429).json({ error: 'Rate limit reached. Please wait and try again.' });
     if (msg.includes('401') || msg.includes('Incorrect API key')) return res.status(401).json({ error: 'Invalid API key.' });
-    return res.status(500).json({ error: 'Failed to reach AI service. Please try again.' });
+    // Surface the actual error message temporarily for debugging
+    return res.status(500).json({ error: `AI Service Error: ${msg}` });
   }
 }

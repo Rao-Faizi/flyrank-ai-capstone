@@ -12,7 +12,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.64",
     "@google/generative-ai": "^0.24.1",
+    "ai": "^7.0.93",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "zod": "^4.5.4"
