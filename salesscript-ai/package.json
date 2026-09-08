@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@google/genai": "^2.21.0",
-    "openai": "^7.10.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "zod": "^4.5.4"

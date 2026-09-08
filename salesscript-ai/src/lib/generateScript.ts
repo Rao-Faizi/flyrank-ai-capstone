@@ -26,7 +26,6 @@ export async function generateScript(input: ScriptInput): Promise<SalesScript> {
         industry: input.industry,
         productBullets: input.productBullets,
         yourName: input.yourName,
-        provider: input.provider,
       }),
     });
   } catch {
